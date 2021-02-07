@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <login />
+    <login v-if/>
     <state-toggle />
   </v-app>
 </template>
