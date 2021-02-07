@@ -4,9 +4,9 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser'), xmlparser = require('express-xml-bodyparser');
 const axios = require('axios');
-const { request } = require('express');
+// const { request } = require('express');
 const cors = require('cors');
-// const apiRoutes = require('./routes/api');
+
 
 const SERVER_PORT = process.env.SERVER_PORT || 8081
 
@@ -17,35 +17,37 @@ app.use('/', async (req, res, next) => {
     if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
         res.status(401).json({ message: 'Missing Authorization Header' });
     } else {
-        console.log(req.headers.authorization)
         const uccx_uri = `${process.env.UCCX_FINNESSE_FQDN}${req.path}`
         try {
-            const response = await axios.get(uccx_uri, {
-                headers: {
-                    Authorization: req.headers.authorization,
-                }
-            })
 
-            // const response = await axios.get(uccx_uri, {
-            //     headers: {
-            //         Authorization: req.headers.authorization,
-            //         "Content-Type": "application/xml",
-            //         accept: '*/*'
-            //     }
-            // })
-            console.log(response.headers);
-            // res.send("Got It");
-            res.send(response.data);
+            let response;
+            let headers = req.headers;
+            delete headers.origin;
+            delete headers.referer;
+            delete headers.host;
+            switch (req.method) {
+                case "PUT":
+                    response = await axios.put(uccx_uri, req.rawBody, {
+                        headers: headers
+                    })
+                    break;
+                case "GET":
+                    response = await axios.get(uccx_uri, {
+                        headers: headers
+                    })
+            }
+            res.status(response.status).send(response.data);
         } catch (error) {
-            console.log(error)
-            res.send(error)
+            switch (error.response.status) {
+                case 401:
+                    res.status(401).send("User Not Authorized");
+                    break;
+                default:
+                    // console.log(error.response);
+                    res.status(500).send(error.response.data);
+            }
         }
-        // console.log(uccx_uri)
-        // console.log(req.path)
-        // res.send(req.rawBody)
     }
-    //res.status(404).send("<h1>404 File Not Found</h1>");
-    // res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'));
 })
 
 

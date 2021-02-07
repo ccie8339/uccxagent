@@ -40,11 +40,11 @@ export default {
   data() {
     return {
       valid: true,
-      username: "",
+      username: "Agent001",
       usernameRules: [v => !!v || "Name is required"],
-      password: "",
+      password: "ciscopsdt",
       passwordRules: [v => !!v || "Password is required"],
-      extension: "",
+      extension: "6001",
       extensionRules: [v => !!v || "Extension is required"]
     };
   },
@@ -55,7 +55,11 @@ export default {
       "setLastName",
       "setLoginId",
       "setLoginName",
-      "setRoles"
+      "setPassword",
+      "setRoles",
+      "setAgentState",
+      "setTeamName",
+      "setAgentUri"
     ]),
     validate() {
       this.$refs.form.validate();
@@ -63,17 +67,33 @@ export default {
     async login() {
       this.validate();
       const userUri = "http://localhost:8081/finesse/api/User/";
-      //   const user = {
-      //     User: {
-      //       state: "LOGIN",
-      //       extension: this.extension,
-      //     },
-      //   };
+      const headers = {
+        Accept: "*/*",
+        "Content-Type": "application/xml"
+      };
       try {
-        const response = await axios.get(`${userUri}${this.username}`, {
+        let user = {
+          User: {
+            state: "LOGIN",
+            extension: this.extension
+          }
+        };
+        let xmlUser = convert.js2xml(user, {
+          compact: true,
+          ignoreComment: true,
+          spaces: 4
+        });
+        let response = await axios.put(`${userUri}${this.username}`, xmlUser, {
+          headers: headers,
           auth: { username: this.username, password: this.password }
         });
-        const user = convert.xml2js(response.data, {
+        if (response.status === 202) {
+          response = await axios.get(`${userUri}${this.username}`, {
+            headers: headers,
+            auth: { username: this.username, password: this.password }
+          });
+        }
+        user = convert.xml2js(response.data, {
           compact: true,
           ignoreComment: true
         }).User;
@@ -82,13 +102,26 @@ export default {
         this.setLastName(user.lastName._text);
         this.setLoginId(user.loginId._text);
         this.setLoginName(user.loginName._text);
+        this.setPassword(this.password);
         this.setRoles(user.roles.role.map(role => role._text));
-        console.log(
-          convert.xml2js(response.data, { compact: true, ignoreComment: true })
-            .User
-        );
+        this.setAgentState(user.state._text);
+        this.setTeamName(user.teamName._text);
+        this.setAgentUri(user.uri._text);
+        // console.log(
+        //   convert.xml2js(response.data, { compact: true, ignoreComment: true })
+        //     .User
+        // );
       } catch (error) {
-        console.log(error);
+        switch (error.response.status) {
+          case 401:
+            console.log("Invalid Username or Password");
+            break;
+          default:
+            console.log(
+              "An Unknown Error Has Occured Trying to Login, Please Try Again Later"
+            );
+        }
+        console.log(error.response.status);
       }
       //   let xmlUser = convert.js2xml(user, {
       //     compact: true,
