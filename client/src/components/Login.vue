@@ -1,5 +1,5 @@
 <template>
-  <v-card class="mx-auto" max-width="500">
+  <v-card v-if="loginId === null" class="mx-auto" max-width="500">
     <v-row class="flex-d justify-center align-middle">
       <v-col cols="9">
         <v-form ref="form" v-model="valid" lazy-validation>
@@ -35,7 +35,7 @@
 const axios = require("axios");
 const convert = require("xml-js");
 // const https = require('https');
-import { mapActions } from "vuex";
+import { mapActions, mapState } from "vuex";
 export default {
   data() {
     return {
@@ -48,19 +48,12 @@ export default {
       extensionRules: [v => !!v || "Extension is required"]
     };
   },
+  computed: {
+    ...mapState(["loginId"])
+  },
   methods: {
-    ...mapActions([
-      "setExtension",
-      "setFirstName",
-      "setLastName",
-      "setLoginId",
-      "setLoginName",
-      "setPassword",
-      "setRoles",
-      "setAgentState",
-      "setTeamName",
-      "setAgentUri"
-    ]),
+    ...mapActions(["setLoginId", "setPassword"]),
+    ...mapActions("user", ["refreshAgentData"]),
     validate() {
       this.$refs.form.validate();
     },
@@ -88,29 +81,10 @@ export default {
           auth: { username: this.username, password: this.password }
         });
         if (response.status === 202) {
-          response = await axios.get(`${userUri}${this.username}`, {
-            headers: headers,
-            auth: { username: this.username, password: this.password }
-          });
+          await this.setLoginId(this.username);
+          await this.setPassword(this.password);
+          this.refreshAgentData();
         }
-        user = convert.xml2js(response.data, {
-          compact: true,
-          ignoreComment: true
-        }).User;
-        this.setExtension(user.extension._text);
-        this.setFirstName(user.firstName._text);
-        this.setLastName(user.lastName._text);
-        this.setLoginId(user.loginId._text);
-        this.setLoginName(user.loginName._text);
-        this.setPassword(this.password);
-        this.setRoles(user.roles.role.map(role => role._text));
-        this.setAgentState(user.state._text);
-        this.setTeamName(user.teamName._text);
-        this.setAgentUri(user.uri._text);
-        // console.log(
-        //   convert.xml2js(response.data, { compact: true, ignoreComment: true })
-        //     .User
-        // );
       } catch (error) {
         switch (error.response.status) {
           case 401:
@@ -123,12 +97,6 @@ export default {
         }
         console.log(error.response.status);
       }
-      //   let xmlUser = convert.js2xml(user, {
-      //     compact: true,
-      //     ignoreComment: true,
-      //     spaces: 4,
-      //   });
-      //   console.log(xmlUser);
     }
   }
 };

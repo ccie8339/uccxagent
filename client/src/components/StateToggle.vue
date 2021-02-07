@@ -2,7 +2,7 @@
   <v-row class="mx-auto">
     <v-col>
       <v-chip
-        v-if="agentState !== null"
+        v-if="agentState !== null && agentState != undefined"
         class="mr-2 red white--text"
         @click="toggleStatus"
         >{{ agentState }}</v-chip
@@ -18,18 +18,11 @@ const convert = require("xml-js");
 
 export default {
   computed: {
-    ...mapState([
-      "serverUri",
-      "agentState",
-      "extension",
-      "agentUri",
-      "loginId",
-      "password",
-      "extension"
-    ])
+    ...mapState(["serverUri", "loginId", "password"]),
+    ...mapState("user", ["agentState", "extension", "agentUri", "extension"])
   },
   methods: {
-    ...mapActions(["refreshAgentData"]),
+    ...mapActions("user", ["refreshAgentData"]),
     async toggleStatus() {
       const headers = {
         Accept: "*/*",
