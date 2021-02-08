@@ -2,6 +2,7 @@ import axios from "axios";
 import convert from "xml-js";
 
 const state = () => ({
+  refreshingUserData: false,
   extension: null,
   firstName: null,
   lastName: null,
@@ -14,6 +15,8 @@ const state = () => ({
 });
 
 const mutations = {
+  setRefreshingUserData: (state, refreshStatus) =>
+    (state.refreshingUsertData = refreshStatus),
   setExtension: (state, extension) => (state.extension = extension),
   setFirstName: (state, firstName) => (state.firstName = firstName),
   setLastName: (state, lastName) => (state.lastName = lastName),
@@ -36,7 +39,8 @@ const actions = {
     commit("setAgentState", agentState),
   setTeamName: ({ commit }, teamName) => commit("setTeamName", teamName),
   setAgentUri: ({ commit }, agentUri) => commit("setAgentUri", agentUri),
-  refreshAgentData: async ({ commit, rootState }) => {
+  refreshUserData: async ({ commit, rootState }) => {
+    commit("setRefreshingUserData", true);
     const headers = {
       Accept: "*/*",
       "Content-Type": "application/xml"
@@ -64,6 +68,7 @@ const actions = {
     commit("setAgentState", user.state._text);
     commit("setTeamName", user.teamName._text);
     commit("setAgentUri", user.uri._text);
+    commit("setRefreshingUserData", false);
   }
 };
 export default {

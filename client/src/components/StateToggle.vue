@@ -1,11 +1,14 @@
 <template>
   <v-row class="mx-auto">
     <v-col>
-      <v-chip
+      <v-btn
         v-if="agentState !== null && agentState != undefined"
+        :loading="refreshingUserData"
         class="mr-2 red white--text"
+        :color="agentState === 'READY' ? 'red' : 'green'"
         @click="toggleStatus"
-        >{{ agentState }}</v-chip
+        minWidth="210"
+        >{{ agentStateText }}</v-btn
       >
     </v-col>
   </v-row>
@@ -19,10 +22,19 @@ const convert = require("xml-js");
 export default {
   computed: {
     ...mapState(["serverUri", "loginId", "password"]),
-    ...mapState("user", ["agentState", "extension", "agentUri", "extension"])
+    ...mapState("user", [
+      "refreshingUserData",
+      "agentState",
+      "extension",
+      "agentUri",
+      "extension"
+    ]),
+    agentStateText() {
+      return this.agentState === "READY" ? "Mark Not Ready" : "Mark Ready";
+    }
   },
   methods: {
-    ...mapActions("user", ["refreshAgentData"]),
+    ...mapActions("user", ["refreshUserData"]),
     async toggleStatus() {
       const headers = {
         Accept: "*/*",
@@ -48,7 +60,7 @@ export default {
           }
         );
         if (response.status === 202) {
-          this.refreshAgentData();
+          this.refreshUserData();
         } else {
           console.log("Agent State Change Failed");
         }

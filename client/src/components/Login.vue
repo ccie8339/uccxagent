@@ -53,7 +53,7 @@ export default {
   },
   methods: {
     ...mapActions(["setLoginId", "setPassword"]),
-    ...mapActions("user", ["refreshAgentData"]),
+    ...mapActions("user", ["refreshUserData"]),
     validate() {
       this.$refs.form.validate();
     },
@@ -83,7 +83,7 @@ export default {
         if (response.status === 202) {
           await this.setLoginId(this.username);
           await this.setPassword(this.password);
-          this.refreshAgentData();
+          this.refreshUserData();
         }
       } catch (error) {
         switch (error.response.status) {
