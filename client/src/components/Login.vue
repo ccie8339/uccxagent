@@ -23,6 +23,7 @@
             required
           ></v-text-field>
           <v-btn color="primary" class="mr-4" @click="login" :disabled="!valid">
+            <v-icon>mdi-login</v-icon>
             LOGIN
           </v-btn>
         </v-form>
