@@ -11,7 +11,8 @@ const state = () => ({
   roles: [],
   agentState: null,
   teamName: null,
-  agentUri: null
+  agentUri: null,
+  stateChangeTime: null
 });
 
 const mutations = {
@@ -25,7 +26,9 @@ const mutations = {
   setRoles: (state, roles) => (state.roles = [...roles]),
   setAgentState: (state, agentState) => (state.agentState = agentState),
   setTeamName: (state, teamName) => (state.teamName = teamName),
-  setAgentUri: (state, agentUri) => (state.agentUri = agentUri)
+  setAgentUri: (state, agentUri) => (state.agentUri = agentUri),
+  setStateChangeTime: (state, stateChangeTime) =>
+    (state.stateChangeTime = stateChangeTime)
 };
 
 const actions = {
@@ -68,6 +71,7 @@ const actions = {
     commit("setAgentState", user.state._text);
     commit("setTeamName", user.teamName._text);
     commit("setAgentUri", user.uri._text);
+    commit("setStateChangeTime", user.stateChangeTime._text);
     commit("setRefreshingUserData", false);
   }
 };
